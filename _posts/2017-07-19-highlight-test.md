@@ -1,8 +1,9 @@
 ---
 title: Highlight Test
 categories:
- - Test
-tags:
+  - atest
+tags: null
+published: true
 ---
 
 This is a highlight test.
