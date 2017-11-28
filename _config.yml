@@ -4,10 +4,10 @@
 # ---------------------------------------------------------------
 
 # Site
-title: 0x3f97
+title: "0x3f97"
 subtitle:
 description: 二进制菜鸡
-author: 0x3f97
+author: gd
 # Support language: de, en, fr-FR, id, ja, ko, pt-BR, pt, ru, zh-Hans, zh-hk, zh-tw
 language: en
 date_format: '%Y-%m-%d'
