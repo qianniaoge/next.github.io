@@ -393,7 +393,7 @@ bin 是一种记录 free chunk 的链表数据结构。对于空闲的 chunk，p
 
 ### Unsorted Bin
 
-当 small chunk 或者 large chunk 释放的时候，会先放到 unsorted bin 中，分配时，如果在 unsorted bin 中没有合适的 chunk，就会把 unsorted bin 中所有 chunk 分别加入到所属的 bin 中，然后再从 bin 中分配合适的 chunk。
+当 small chunk 或者 large chunk 释放的时候，会先放到 unsorted bin 中（unsorted bin 的添加操作是在头部，删除操作可以是任何地方），分配时，如果在 unsorted bin 中没有合适的 chunk，就会把 unsorted bin 中所有 chunk 分别加入到所属的 bin 中，然后再从 bin 中分配合适的 chunk。
 
 - Number of bins - 1
 
