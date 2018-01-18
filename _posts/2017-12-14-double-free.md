@@ -8,7 +8,7 @@ published: true
 
 # Overview
 
-- fastbin_dup.c
+- [fastbin_dup.c](https://github.com/shellphish/how2heap/blob/master/fastbin_dup.c)
 
 ```c
 #include <stdio.h>

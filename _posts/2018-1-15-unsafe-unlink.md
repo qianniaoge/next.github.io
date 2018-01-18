@@ -8,7 +8,7 @@ published: true
 
 # Overview
 
-- unsafe_unlink.c
+- [unsafe_unlink.c](https://github.com/shellphish/how2heap/blob/master/unsafe_unlink.c)
 
 ```c
 #include <stdio.h>
