@@ -214,7 +214,6 @@ font:
 # Value is the target link (E.g. GitHub: https://github.com/iissnan)
 social:
   GitHub: https://github.com/0x3f97
-  email: 0x3f97@gmail.com
 
 
 # Social Links Icons
@@ -227,6 +226,7 @@ social_icons:
   # Icon Mappings.
   # KeyMapsToSocialItemKey: NameOfTheIconFromFontAwesome
   GitHub: github
+
 
 # Sidebar Avatar
 # in directory: /assets/images/avatar.gif
