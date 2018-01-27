@@ -10,7 +10,7 @@ published: true
 
 知识点： [poison null byte](https://github.com/shellphish/how2heap/blob/master/poison_null_byte.c)
 
-**[datastore](https://github.com/0x3f97/pwn/blob/master/plaidctf-2015-plaiddb/datastore)**:
+**[datastore](https://github.com/ctfs/write-ups-2015/tree/master/plaidctf-2015/pwnable/plaiddb)**:
 
 datastore: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.24, BuildID[sha1]=1a031710225e93b0b5985477c73653846c352add, stripped
 
