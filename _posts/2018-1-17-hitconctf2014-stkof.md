@@ -2,7 +2,7 @@
 title: hitcon ctf 2014 - stkof
 categories:
   - pwn
-tags: null
+tags: unsafe-unlink
 published: true
 ---
 

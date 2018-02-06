@@ -2,7 +2,7 @@
 title: plaid ctf 2015 plaiddb
 categories:
   - pwn
-tags: null
+tags: off-by-one overlapping-chunks
 published: true
 ---
 
