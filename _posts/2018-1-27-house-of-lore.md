@@ -192,7 +192,7 @@ int main(int argc, char * argv[]){
 0x7ffff7dd1b50 <main_arena+48>:	0x00603000	0x00000000	0x00000000	0x00000000
 ```
 
-现在要 malloc 一块既不会存放到 unsorted bin 也不会存放到 small bin 中的 chunk（也就是 malloc 一块 large chunk），那么 victim 就会被放到 small bin 中（ubuntu 16.04 环境下测试 small chunk 也可以）。
+现在要 malloc 一块当前 unsorted bin 和 small bin 中没有的 chunk（也就是除了 victim 大小之外的 chunk），那么 victim 就会被放到 small bin 中（ubuntu 16.04 环境下测试：若 victim 为 fastbin 大小，则需 malloc 一块 largebin 大小的 chunk；若 victim 为 smallbin，则只需 malloc 一块比 victim 大的 chunk 即可）。
 
 ```c
   void *p2 = malloc(1200);
