@@ -124,3 +124,17 @@ insert(p8(0)*0x10)
 我对一台远程 ubuntu server 也可利用成功，其 cpu 的 l1d 大小为 `32kb`, size_half 也就是 16k，调整一下偏移即可
 由于一级缓存的大小限制，这个变量的值如果比较固定的话，可以使这种利用方式相对稳定，更为详细还有待对 cpu cache 
 size 进行研究。
+
+运行截图：
+
+![]({{site.baseurl}}/images/Screenshot from 2018-02-13 11-08-36.png)
+
+# Reference
+
+[zerostorage.py](https://github.com/scwuaptx/CTF/blob/master/2016-writeup/0ctf/zerostorage.py)
+
+[0CTF 2016 Quals PWN Zerostorage Write-up](https://dangokyo.me/2017/12/14/0ctf-2016-quals-pwn-zerostorage-write-up/)
+
+[Playing with tls_dtor_list](http://www.w0lfzhang.com/2017/03/27/Playing-with-tls-dtor-list/)
+
+[0ctf_zerostorage](http://0xshare.me/0ctf_zerostorage.html)
