@@ -119,15 +119,11 @@ insert(p8(0)*0x10)
 然后就可以实施 fastbin attak 改写 realloc_hook 为 system 地址 getshell，具体细节在
  [exp.py](https://github.com/0x3f97/pwn/blob/master/0ctf2016-zerostorage/exp12.py)。
 
-这其中比较麻烦的是内存破坏范围太大，把内存中必要的变量重新填好，要花费一番功夫来查找需要的变量和计算
-它们的偏移。这个利用方式的关键在于内存中是否有合适的值，而 `__x86_data_cache_size` 会由于机器不同而大小不同，
-我对一台远程 ubuntu server 也可利用成功，其 cpu 的 l1d 大小为 `32kb`, size_half 也就是 16k，调整一下偏移即可。
-由于一级缓存的大小限制，大部分为 `32kb` 或 `16kb`，可以使这种利用方式相对稳定，更为详细还有待对 cpu cache 
-size 进行研究。
-
-运行截图：
-
-![]({{site.baseurl}}/images/Screenshot from 2018-02-13 11-08-36.png)
+这其中比较麻烦的是内存破坏范围太大，把内存中必要的变量重新填好，要花费一番功夫来查找需要的变量和计算它们的偏
+移。这个利用方式的关键在于内存中是否有合适的值，而 `__x86_data_cache_size` 会由于机器不同而大小不同，我对一台
+远程 ubuntu server 也可利用成功，其 cpu 的 l1d 大小为 `32kb`, size_half 也就是 16k，调整一下偏移即可。由于一
+级缓存的大小限制，目前大多数 cpu 的 l1d 大小为 `32kb` 或 `16kb`，可以使这种利用方式相对稳定，更为详细还有待对
+ cpu cache 进行研究。
 
 # Reference
 
