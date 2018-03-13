@@ -509,7 +509,7 @@ payload += "/bin/sh\x00"
 	}
 ```
 
-解决办法则是将 `l->l_info[VERSYMID (DT_VERSYM)]` 的值给些为 `NULL`，而该值位于 link_map 偏移 `0x1c8` 处。
+解决办法则是将 `l->l_info[VERSYMID (DT_VERSYM)]` 的值写为 `NULL`，而该值位于 link_map 偏移 `0x1c8` 处。
 exp: [exp64.py](https://github.com/0x3f97/pwn/blob/master/ret2dl-resolve/exp64.py)
 
 
