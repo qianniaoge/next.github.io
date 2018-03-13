@@ -517,7 +517,7 @@ exp: [exp64.py](https://github.com/0x3f97/pwn/blob/master/ret2dl-resolve/exp64.p
 
 - [The advanced return-into-lib(c) exploits](http://phrack.org/issues/58/4.html)
 
-- [Return-to-dl-resolve](http://pwn4.fun/2016/11/09/Return-to-dl-resolve/) 深入浅出
+- [Return-to-dl-resolve](http://pwn4.fun/2016/11/09/Return-to-dl-resolve/)
 
 - [Try ASLR + DEP avoidance with ROP stager + Return-to-dl-resolve on x64](http://inaz2.hatenablog.com/entry/2014/07/27/205322)
 
