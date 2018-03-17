@@ -277,10 +277,9 @@ int winner(char *ptr)
 
 # House Of Orange
 
-令人惊叹的攻击技术，利用 `_IO_FILE` 结构体的特性，使用 unsorted bin attack 修改 `_IO_list_all` 链表，添加构造
-的 `_IO_FILE_plus` 变量，其 `vtable` 上 `__overflow` 域的值为 system 地址，当触发 malloc_printerr 时调
-用 abort -> _IO_fflush() -> _IO_flush_all_lockp -> _IO_OVERFLOW -- JUMP system，思路是这样，把原版 poc 简化
-一下：
+令人惊叹的攻击技术，利用 `_IO_FILE` 结构体的特性，使用 unsorted bin attack 修改 libc 上的 `_IO_list_all` 链表，
+添加构造的 `_IO_FILE_plus` 变量，其 `vtable` 上 `__overflow` 域的值为 system 地址，当触发 malloc_printerr 时调
+用 abort -> _IO_fflush() -> _IO_flush_all_lockp -> _IO_OVERFLOW -- JUMP system，思路是这样，把原版 poc 简化一下：
 
 ```c
 #include <stdio.h>
