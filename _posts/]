@@ -1,0 +1,95 @@
+---
+title: linux kernel rop
+categories:
+  - pwn
+tags: linux-kernel-exploitation
+published: true
+---
+
+# Introduction
+
+学习 liunx 内核漏洞利用 rop 技术，练习一下内核 rop 链的构造到执行来完成普通用户权限提升。
+
+在一般的 [ret2usr](http://cyseclabs.com/slides/smep_bypass.pdf) 攻击中，内核的控制流会被重定向到用户空间中包含
+权限提升代码的地址处:
+
+```
+void __attribute__((regparm(3))) payload() {
+    commit_creds(prepare_kernel_cred(0);
+}
+```
+
+执行上面的代码会分配一个新的凭证结构且 `uid`=0, `gid`=0 应用于当前调用它的进程。我们可以构造 rop 链来执行这个
+操作而不用执行用户态内存中的指令，最终目标是在内核态用 rop 链执行整个权限提升的 `payload`。整个 rop 链看起来
+应该如下所示：
+
+![rop-chain]({{site.baseurl}}/images/rop-chain.png)
+
+使用 x86_64 的函数调用约定，第一个参数通过 `%rdi` 寄存器传递，rop 链中的第一个指令从栈中弹出空值，然后这个值就
+作为第一个参数传递到 `prepare_kernel_cred()` 函数。指向新的凭证结构的指针会作为返回值存储在 `%rax` 寄存器中，
+然后再次移动到 `%rdi` 寄存器中作为第一个参数传递给 `commit_creds()` 函数。现在暂时跳过了凭证结构应用之后返回
+到用户态的一些细节，这部分细节会在之后提到。
+
+# Test System
+
+本文是以 ubuntu 12.04 64bit 作为测试系统, 其内核版本如下：
+
+```
+user@ubuntu:~/kernel_rop$ uname -r
+3.11.0-26-generic
+```
+
+内核态与用户态应用相似，内核二进制文件也可通过 ROPgadget 查找一些 gadgets，不过需要内核的 ELF 镜像(vmlinux)，
+如果使用的是 `/boot/vmlinuz` 镜像则还需先将其解压，`/boot/vmlinuz` 是一个用多种算法压缩过的内核镜像，可以使用
+[extract-vmlinux](https://github.com/torvalds/linux/blob/master/scripts/extract-vmlinux) 脚本将其解压。
+
+```
+user@ubuntu:~$ sudo file /boot/vmlinuz-3.11.0-26-generic 
+/boot/vmlinuz-3.11.0-26-generic: Linux kernel x86 boot executable bzImage, version 3.11.0-26-generic (buildd@komainu)
+#45~precise1-Ubuntu SMP Tue , RO-rootFS, swap_dev 0x5, Normal VGA
+user@ubuntu:~$ sudo ./extract-vmlinux.sh /boot/vmlinuz-3.11.0-26-generic > vmlinux 
+user@ubuntu:~$ file vmlinux 
+vmlinux: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked,
+BuildID[sha1]=0xe0b2f4d5253e3da0f1ea2be9916b1b9d323ad908, stripped
+```
+
+ROP 技术采用代码错位的优势确定新的 gadgets。由于 x86 的语言密度使其成为可能，x86 指令集足够大（指令具有不同的长
+度），几乎任意字节序列都能被解释成正确的指令。例如，根据不同的偏移，以下指令可以有不同的解释：
+
+```
+0f 94 c3; sete   %bl
+   94 c3; xchg eax, esp; ret
+```
+
+# Vulnerable Driver
+
+漏洞代码 [vulnerable driver](https://github.com/0x3f97/pwn/tree/master/kernel/kernel_rop):
+
+```
+static long device_ioctl(struct file *file, unsigned int cmd, unsigned long args) {
+	struct drv_req *req;
+	void (*fn)(void);
+	
+	switch(cmd) {
+	case 0:
+		req = (struct drv_req *)args;
+		printk(KERN_INFO "size = %lx\n", req->offset);
+                printk(KERN_INFO "fn is at %p\n", &ops[req->offset]);
+		fn = &ops[req->offset];
+		fn();
+		break;
+	default:
+		break;
+	}
+
+	return 0;
+}
+```
+
+程序直接执行了根据传入参数偏移得到的地址处的指令，那么我们只要计算指令的偏移就可以执行任意代码了。
+
+# Debug
+
+内核调试环境的搭建可以参考这篇 [linux kernel exploitation environment setup](https://0x3f97.github.io/pwn/2018/03/30/linux-kernel-exploitation-environment-setup)
+
+使用 qemu 模拟运行 linux 内核，编译 busybox 作为文件系统，
