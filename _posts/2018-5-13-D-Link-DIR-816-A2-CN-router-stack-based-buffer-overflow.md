@@ -8,7 +8,7 @@ published: true
 
 **This is the detail about CVE-2018-11013.**
 
-# Detail
+# Vulnerability Detail
 
 The vulnerability exists in the websRedirect function in the GoAhead web server. 
 
