@@ -8,6 +8,12 @@ published: true
 
 **This is the detail about CVE-2018-11013.**
 
+# Vulnerability Description
+
+Stack-based buffer overflow in the websRedirect function in GoAhead on D-Link DIR-816 A2 (CN) routers with
+firmware version 1.10B05 allows unauthenticated remote attackers to execute arbitrary code via a request with
+a long HTTP Host header.
+
 # Vulnerability Detail
 
 The vulnerability exists in the websRedirect function in the GoAhead web server. 
