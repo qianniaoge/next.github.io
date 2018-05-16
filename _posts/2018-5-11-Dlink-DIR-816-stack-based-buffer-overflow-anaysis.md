@@ -81,7 +81,7 @@ telnetd，就换成了旧的版本，至于新版本是否修补了旧版本的�
 来看一下这个 crash 的位置，经过分析漏洞代码是 websRedirect　函数中位于 `0x41EAE4`　位置处的一段代码，对字符串
 复制没有长度限制，只是判断遇到空字节或者换行符结束。
 
-![]({{site.baseurl}}/images/18-5-11-8.png)
+![]({{site.baseurl}}/images/18-5-11-10.png)
 
 # Exploitation
 
